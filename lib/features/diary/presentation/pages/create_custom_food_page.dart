@@ -611,218 +611,179 @@ class _CreateCustomFoodPageState extends State<CreateCustomFoodPage>
   }
 
   void _showEditSingleIngredientDialog(int index, bool isDark) {
-    if (widget.isReadOnly) return;
+  if (widget.isReadOnly) return;
 
-    final item = _ingredients[index];
-    final nameCtrl = TextEditingController(text: item['name'] ?? '');
+  final item = _ingredients[index];
+  final nameCtrl = TextEditingController(text: item['name'] ?? '');
 
-    final double originalGram = _extractGramsStrict(item['weightG'], item['portion']);
-    final gramCtrl = TextEditingController(text: originalGram.round().toString());
+  final double originalGram = _extractGramsStrict(item['weightG'], item['portion']);
+  final gramCtrl = TextEditingController(text: originalGram.round().toString());
 
-    final double originalCal = _parseNum(item['calories']);
-    final double originalCarbs = _parseNum(item['carbs'] ?? item['carbsG']);
-    final double originalProtein = _parseNum(item['protein'] ?? item['proteinG']);
-    final double originalFat = _parseNum(item['fat'] ?? item['fatG']);
+  final double originalCal = _parseNum(item['calories']);
+  final calCtrl = TextEditingController(text: originalCal.round().toString());
 
-    double rawFiber = _extractFiberFromData(item);
-    if (rawFiber == 0.0) {
-      final n = (item['name'] ?? '').toString().toLowerCase();
-      if (n.contains('khoai') || n.contains('bí đỏ') || n.contains('kabocha')) {
-        rawFiber = (originalGram / 100.0) * 2.5;
-      } else if (n.contains('cơm') || n.contains('gạo')) {
-        rawFiber = (originalGram / 100.0) * 0.4;
-      } else if (n.contains('rau') || n.contains('canh') || n.contains('cà chua')) {
-        rawFiber = (originalGram / 100.0) * 1.2;
-      }
+  final double originalCarbs = _parseNum(item['carbs'] ?? item['carbsG']);
+  final double originalProtein = _parseNum(item['protein'] ?? item['proteinG']);
+  final double originalFat = _parseNum(item['fat'] ?? item['fatG']);
+
+  double rawFiber = _extractFiberFromData(item);
+  if (rawFiber == 0.0) {
+    final n = (item['name'] ?? '').toString().toLowerCase();
+    if (n.contains('khoai') || n.contains('bí đỏ') || n.contains('kabocha')) {
+      rawFiber = (originalGram / 100.0) * 2.5;
+    } else if (n.contains('cơm') || n.contains('gạo')) {
+      rawFiber = (originalGram / 100.0) * 0.4;
+    } else if (n.contains('rau') || n.contains('canh') || n.contains('cà chua')) {
+      rawFiber = (originalGram / 100.0) * 1.2;
     }
-    final double originalFiber = rawFiber;
-
-    int currentCal = originalCal.round();
-    double currentFiber = originalFiber;
-
-    final Color cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final Color textColor = isDark ? Colors.white : const Color(0xFF0F172A);
-    final Color subTextColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final Color inputFill = isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9);
-    final Color borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: cardBg,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-          side: BorderSide(color: borderColor),
-        ),
-        title: Text(
-          'Chỉnh sửa thành phần',
-          style: GoogleFonts.plusJakartaSans(
-            color: textColor,
-            fontWeight: FontWeight.w800,
-            fontSize: 17,
-          ),
-        ),
-        content: StatefulBuilder(
-          builder: (context, setDialogState) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
-                  controller: nameCtrl,
-                  style: GoogleFonts.plusJakartaSans(color: textColor, fontWeight: FontWeight.bold),
-                  decoration: InputDecoration(
-                    labelText: 'Tên thành phần',
-                    filled: true,
-                    fillColor: inputFill,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: gramCtrl,
-                  keyboardType: TextInputType.number,
-                  style: GoogleFonts.plusJakartaSans(color: textColor, fontWeight: FontWeight.bold, fontSize: 16),
-                  decoration: InputDecoration(
-                    labelText: 'Khối lượng',
-                    suffixText: 'g',
-                    suffixStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, color: const Color(0xFF10B981)),
-                    filled: true,
-                    fillColor: inputFill,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-                  ),
-                  onChanged: (val) {
-                    final newG = double.tryParse(val) ?? originalGram;
-                    if (originalGram > 0) {
-                      final ratio = newG / originalGram;
-                      setDialogState(() {
-                        currentCal = (originalCal * ratio).round();
-                        currentFiber = originalFiber * ratio;
-                      });
-                    }
-                  },
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
-                        decoration: BoxDecoration(
-                          color: inputFill,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Calo ước tính',
-                              style: GoogleFonts.plusJakartaSans(color: subTextColor, fontSize: 11.5, fontWeight: FontWeight.w600),
-                            ),
-                            const SizedBox(height: 3),
-                            Text(
-                              '$currentCal kcal',
-                              style: GoogleFonts.plusJakartaSans(
-                                color: const Color(0xFF10B981),
-                                fontSize: 16,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
-                        decoration: BoxDecoration(
-                          color: inputFill,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Chất xơ',
-                              style: GoogleFonts.plusJakartaSans(color: subTextColor, fontSize: 11.5, fontWeight: FontWeight.w600),
-                            ),
-                            const SizedBox(height: 3),
-                            Text(
-                              '${currentFiber.toStringAsFixed(1)} g',
-                              style: GoogleFonts.plusJakartaSans(
-                                color: const Color(0xFF8B5CF6),
-                                fontSize: 16,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            );
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'Hủy',
-              style: GoogleFonts.plusJakartaSans(
-                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF10B981),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            onPressed: () {
-              final newName = nameCtrl.text.trim();
-              final newGrams = double.tryParse(gramCtrl.text) ?? originalGram;
-
-              if (newName.isNotEmpty) {
-                final ratio = originalGram > 0 ? (newGrams / originalGram) : 1.0;
-                final newFiber = originalFiber * ratio;
-                final newCal = (originalCal * ratio).round();
-
-                _ingredients[index] = {
-                  ...item,
-                  'name': newName,
-                  'weightG': newGrams,
-                  'portion': '${newGrams.round()}g',
-                  'calories': newCal,
-                  'carbs': (originalCarbs * ratio).toStringAsFixed(1),
-                  'protein': (originalProtein * ratio).toStringAsFixed(1),
-                  'fat': (originalFat * ratio).toStringAsFixed(1),
-                  'fiberG': newFiber,
-                  'fiber': newFiber,
-                  'dietaryFiber': newFiber,
-                  'totalFiber': newFiber,
-                };
-
-                _recalculateTotalNutrition();
-                Navigator.pop(ctx);
-                AppToast.showSuccess(context, 'Đã cập nhật $newName!');
-              }
-            },
-            child: Text(
-              'Cập nhật',
-              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800),
-            ),
-          ),
-        ],
-      ),
-    );
   }
+  final double originalFiber = rawFiber;
+  double currentFiber = originalFiber;
+
+  final Color cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+  final Color textColor = isDark ? Colors.white : const Color(0xFF0F172A);
+  final Color inputFill = isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9);
+  final Color borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      backgroundColor: cardBg,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: BorderSide(color: borderColor),
+      ),
+      title: Text(
+        'Chỉnh sửa thành phần',
+        style: GoogleFonts.plusJakartaSans(
+          color: textColor,
+          fontWeight: FontWeight.w800,
+          fontSize: 17,
+        ),
+      ),
+      content: StatefulBuilder(
+        builder: (context, setDialogState) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: nameCtrl,
+                style: GoogleFonts.plusJakartaSans(color: textColor, fontWeight: FontWeight.bold),
+                decoration: InputDecoration(
+                  labelText: 'Tên thành phần',
+                  filled: true,
+                  fillColor: inputFill,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: gramCtrl,
+                      keyboardType: TextInputType.number,
+                      style: GoogleFonts.plusJakartaSans(color: textColor, fontWeight: FontWeight.bold, fontSize: 16),
+                      decoration: InputDecoration(
+                        labelText: 'Khối lượng',
+                        suffixText: 'g',
+                        suffixStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, color: const Color(0xFF10B981)),
+                        filled: true,
+                        fillColor: inputFill,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                      ),
+                      onChanged: (val) {
+                        final newG = double.tryParse(val) ?? originalGram;
+                        if (originalGram > 0) {
+                          final ratio = newG / originalGram;
+                          setDialogState(() {
+                            calCtrl.text = (originalCal * ratio).round().toString();
+                            currentFiber = originalFiber * ratio;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: calCtrl,
+                      keyboardType: TextInputType.number,
+                      style: GoogleFonts.plusJakartaSans(color: const Color(0xFF10B981), fontWeight: FontWeight.w900, fontSize: 16),
+                      decoration: InputDecoration(
+                        labelText: 'Calo',
+                        suffixText: 'kcal',
+                        suffixStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, color: const Color(0xFF10B981)),
+                        filled: true,
+                        fillColor: inputFill,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(
+            'Hủy',
+            style: GoogleFonts.plusJakartaSans(
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF10B981),
+            foregroundColor: Colors.white,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          onPressed: () {
+            final newName = nameCtrl.text.trim();
+            final newGrams = double.tryParse(gramCtrl.text) ?? originalGram;
+            final newCal = int.tryParse(calCtrl.text) ?? originalCal.round();
+
+            if (newName.isNotEmpty) {
+              final ratio = originalGram > 0 ? (newGrams / originalGram) : 1.0;
+              final newFiber = currentFiber;
+
+              _ingredients[index] = {
+                ...item,
+                'name': newName,
+                'weightG': newGrams,
+                'portion': '${newGrams.round()}g',
+                'calories': newCal,
+                'carbs': (originalCarbs * ratio).toStringAsFixed(1),
+                'protein': (originalProtein * ratio).toStringAsFixed(1),
+                'fat': (originalFat * ratio).toStringAsFixed(1),
+                'fiberG': newFiber,
+                'fiber': newFiber,
+                'dietaryFiber': newFiber,
+                'totalFiber': newFiber,
+              };
+
+              _recalculateTotalNutrition();
+              Navigator.pop(ctx);
+              AppToast.showSuccess(context, 'Đã cập nhật $newName!');
+            }
+          },
+          child: Text(
+            'Cập nhật',
+            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
   Future<void> _saveDirectlyToDiary() async {
     if (_isSaving || widget.isReadOnly) return;
@@ -1570,73 +1531,98 @@ class _CreateCustomFoodPageState extends State<CreateCustomFoodPage>
 
               // 2. CARD NĂNG LƯỢNG & TỶ LỆ MACRO (3 MACRO CHÍNH)
               Container(
-                padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
                   color: cardBg,
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(color: borderColor),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Tổng Năng Lượng',
-                          style: GoogleFonts.plusJakartaSans(color: subTextColor, fontSize: 13.5, fontWeight: FontWeight.w600),
-                        ),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            Text(
-                              '$_calories',
-                              style: GoogleFonts.plusJakartaSans(
-                                color: textColor,
-                                fontSize: 28,
-                                fontWeight: FontWeight.w900,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(24),
+                    onTap: widget.isReadOnly ? null : () => _showEditNutritionDialog(isDark),
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    'Tổng Năng Lượng',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: subTextColor,
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  if (!widget.isReadOnly) ...[
+                                    const SizedBox(width: 6),
+                                    Icon(Icons.edit_rounded, size: 14, color: subTextColor),
+                                  ],
+                                ],
+                              ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.baseline,
+                                textBaseline: TextBaseline.alphabetic,
+                                children: [
+                                  Text(
+                                    '$_calories',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: textColor,
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'kcal',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: const Color(0xFF10B981),
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: SizedBox(
+                              height: 8,
+                              child: Row(
+                                children: [
+                                  Expanded(flex: ((carbsCal / totalCalCalc) * 100).toInt().clamp(1, 100), child: Container(color: const Color(0xFFF59E0B))),
+                                  const SizedBox(width: 2),
+                                  Expanded(flex: ((proteinCal / totalCalCalc) * 100).toInt().clamp(1, 100), child: Container(color: const Color(0xFFEF4444))),
+                                  const SizedBox(width: 2),
+                                  Expanded(flex: ((fatCal / totalCalCalc) * 100).toInt().clamp(1, 100), child: Container(color: const Color(0xFF10B981))),
+                                ],
                               ),
                             ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'kcal',
-                              style: GoogleFonts.plusJakartaSans(color: const Color(0xFF10B981), fontSize: 15, fontWeight: FontWeight.w800),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: SizedBox(
-                        height: 8,
-                        child: Row(
-                          children: [
-                            Expanded(flex: ((carbsCal / totalCalCalc) * 100).toInt().clamp(1, 100), child: Container(color: const Color(0xFFF59E0B))),
-                            const SizedBox(width: 2),
-                            Expanded(flex: ((proteinCal / totalCalCalc) * 100).toInt().clamp(1, 100), child: Container(color: const Color(0xFFEF4444))),
-                            const SizedBox(width: 2),
-                            Expanded(flex: ((fatCal / totalCalCalc) * 100).toInt().clamp(1, 100), child: Container(color: const Color(0xFF10B981))),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              _buildMacroMetricCard('Tinh bột', '${_carbsG.toStringAsFixed(0)}g', '${((carbsCal / totalCalCalc) * 100).round()}%', const Color(0xFFF59E0B), isDark),
+                              const SizedBox(width: 8),
+                              _buildMacroMetricCard('Chất đạm', '${_proteinG.toStringAsFixed(0)}g', '${((proteinCal / totalCalCalc) * 100).round()}%', const Color(0xFFEF4444), isDark),
+                              const SizedBox(width: 8),
+                              _buildMacroMetricCard('Chất béo', '${_fatG.toStringAsFixed(0)}g', '${((fatCal / totalCalCalc) * 100).round()}%', const Color(0xFF10B981), isDark),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        _buildMacroMetricCard('Tinh bột', '${_carbsG.toStringAsFixed(0)}g', '${((carbsCal / totalCalCalc) * 100).round()}%', const Color(0xFFF59E0B), isDark),
-                        const SizedBox(width: 8),
-                        _buildMacroMetricCard('Chất đạm', '${_proteinG.toStringAsFixed(0)}g', '${((proteinCal / totalCalCalc) * 100).round()}%', const Color(0xFFEF4444), isDark),
-                        const SizedBox(width: 8),
-                        _buildMacroMetricCard('Chất béo', '${_fatG.toStringAsFixed(0)}g', '${((fatCal / totalCalCalc) * 100).round()}%', const Color(0xFF10B981), isDark),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 14),
+                            const SizedBox(height: 14),
 
               // 3. CARD BÓC TÁCH THÀNH PHẦN CON
               if (_ingredients.isNotEmpty)
